@@ -257,9 +257,9 @@ func (t *PrizeRule) CalculateNew(wd *WalkDayData) (zrb string, err error) {
 		}
 		if hoursteps >= node.Steps {
 
-			if index == 1 {
+			if index == 0 {
 				zhao = true
-			} else if index == 2 {
+			} else if index == 1 {
 				mu = true
 			}
 		}
