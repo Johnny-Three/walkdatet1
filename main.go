@@ -15,7 +15,7 @@ import (
 
 var err error
 var consumer *nsq.Consumer
-var version string = "1.0.0PR3"
+var version string = "1.0.0PR4"
 
 var def = 100
 
@@ -51,7 +51,7 @@ func main() {
 			os.Exit(0)
 		}
 
-		Sync(users, db, 100)
+		Sync(users, db, def)
 		os.Exit(1)
 	}
 
