@@ -131,7 +131,7 @@ func (t *HourData) AssignZmflag() error {
 		return errors.New("Inthour长度不够24，尚未初始化")
 	}
 	total := 0
-	for i := 5; i <= 8; i++ {
+	for i := 5; i <= 7; i++ {
 		total += t.Inthour[i]
 	}
 	if total >= 3000 {
@@ -140,7 +140,7 @@ func (t *HourData) AssignZmflag() error {
 		return nil
 	}
 	total = 0
-	for i := 18; i <= 23; i++ {
+	for i := 17; i <= 22; i++ {
 
 		total += t.Inthour[i]
 	}
@@ -215,9 +215,9 @@ func (t *PrizeRule) CalculateOld(wd *HourData) (zrb string, err error) {
 		}
 		if hoursteps >= node.Steps {
 
-			if index == 1 {
+			if index == 0 {
 				zhao = true
-			} else if index == 2 {
+			} else if index == 1 {
 				mu = true
 			}
 		}

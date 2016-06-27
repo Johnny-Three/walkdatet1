@@ -16,7 +16,8 @@ func SelectAllUsers(db *sql.DB) ([]*UserDayData, error) {
 	users := []*UserDayData{}
 
 	//半年内上传过数据的人
-	qs := "select userid,unix_timestamp(from_unixtime(lastuploadtime,'%Y-%m-%d')) from wanbu_data_userdevice where lastuploadtime > unix_timestamp(date_sub(curdate(),interval 6 month)) limit 10"
+	//qs := "select userid,unix_timestamp(from_unixtime(lastuploadtime,'%Y-%m-%d')) from wanbu_data_userdevice where lastuploadtime > unix_timestamp(date_sub(curdate(),interval 6 month)) limit 10"
+	qs := "select userid,unix_timestamp(from_unixtime(unix_timestamp(),'%Y-%m-%d')) from wanbu_data_userdevice where lastuploadtime > unix_timestamp(date_sub(curdate(),interval 6 month)) limit 10"
 
 	rows, err := db.Query(qs)
 	if err != nil {
@@ -240,6 +241,7 @@ func AssignUserHourData(db *sql.DB, user *UserDayData) error {
 	if err0 != nil {
 		return err0
 	}
+
 	//fmt.Println("after assgin begindate", user)
 	for wd := user.Startdate; wd <= user.Enddate; wd += 86400 {
 
@@ -250,10 +252,11 @@ func AssignUserHourData(db *sql.DB, user *UserDayData) error {
 			return errors.New(errback)
 		}
 		if b == true {
+			hd.Walkdate = wd
 			user.MapHourData[wd] = hd
 		}
 	}
-	fmt.Println("UserDayData is", user)
+	fmt.Printf("UserDayData 用户ID[%d],开始时间[%d],结束时间[%d],初始化数据量[%d]", user.Userid, user.Startdate, user.Enddate, len(user.MapHourData))
 	return nil
 }
 
@@ -479,13 +482,20 @@ func InsertT1(db *sql.DB, user *UserDayData) error {
 
 		return nil
 	}
-
+	var id int
 	for key, value := range user.MapHourData {
 
-		sqlStr := `
-	   INSERT INTO wanbu_data_walkday_t1 (userid, walkdate, zmflag, faststepnum, remaineffectiveSteps, zmrule, zmstatus) values (?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE walkdate = VALUES(walkdate),zmflag = VALUES(zmflag),faststepnum = VALUES(faststepnum),remaineffectiveSteps = VALUES(remaineffectiveSteps),zmrule = VALUES(zmrule),zmstatus = VALUES(zmstatus)`
+		qs := fmt.Sprintf("select dataid from wanbu_data_walkday where userid=%d and walkdate =%d", user.Userid, value.Walkdate)
+		fmt.Println(qs)
+		err = db.QueryRow(qs).Scan(&id)
+		if err != nil {
+			return err
+		}
 
-		_, err := db.Exec(sqlStr, user.Userid, key, value.Zmflag, value.Faststepnum, value.Effecitvestepnum, value.Zmrule, value.Zmstatus)
+		sqlStr := `
+	   INSERT INTO wanbu_data_walkday_t1 (dataid,userid, walkdate, zmflag, faststepnum, remaineffectiveSteps, zmrule, zmstatus) values (?,?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE dataid=VALUES(dataid),walkdate = VALUES(walkdate),zmflag = VALUES(zmflag),faststepnum = VALUES(faststepnum),remaineffectiveSteps = VALUES(remaineffectiveSteps),zmrule = VALUES(zmrule),zmstatus = VALUES(zmstatus)`
+
+		_, err := db.Exec(sqlStr, id, user.Userid, key, value.Zmflag, value.Faststepnum, value.Effecitvestepnum, value.Zmrule, value.Zmstatus)
 
 		if err != nil {
 			return err
