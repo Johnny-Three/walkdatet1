@@ -17,7 +17,7 @@ func SelectAllUsers(db *sql.DB) ([]*UserDayData, error) {
 
 	//半年内上传过数据的人
 	//qs := "select userid,unix_timestamp(from_unixtime(lastuploadtime,'%Y-%m-%d')) from wanbu_data_userdevice where lastuploadtime > unix_timestamp(date_sub(curdate(),interval 6 month)) limit 10"
-	qs := "select userid,unix_timestamp(from_unixtime(unix_timestamp(),'%Y-%m-%d')) from wanbu_data_userdevice where lastuploadtime > unix_timestamp(date_sub(curdate(),interval 6 month)) limit 10"
+	qs := "select userid,unix_timestamp(from_unixtime(unix_timestamp(),'%Y-%m-%d')) from wanbu_data_userdevice where lastuploadtime > unix_timestamp(date_sub(curdate(),interval 18 month)) "
 
 	rows, err := db.Query(qs)
 	if err != nil {
@@ -41,7 +41,7 @@ func SelectAllUsers(db *sql.DB) ([]*UserDayData, error) {
 func AssingOneUserBeginDate(db *sql.DB, user *UserDayData) error {
 
 	//找到开始时间,如果min(walkdate)为空，则为异常数据
-	qs := "select IFNULL(min(walkdate),-1) from wanbu_data_walkday where walkdate >= unix_timestamp(date_format(date_sub(curdate(),interval 6 month),'%Y-%m-%d')) and userid = ?"
+	qs := "select IFNULL(min(walkdate),-1) from wanbu_data_walkday where walkdate >= unix_timestamp(date_format(date_sub(curdate(),interval 18 month),'%Y-%m-%d')) and userid = ?"
 
 	rows, err0 := db.Query(qs, user.Userid)
 	if err0 != nil {

@@ -131,7 +131,7 @@ func (t *HourData) AssignZmflag() error {
 		return errors.New("Inthour长度不够24，尚未初始化")
 	}
 	total := 0
-	for i := 5; i <= 7; i++ {
+	for i := 5; i <= 8; i++ {
 		total += t.Inthour[i]
 	}
 	if total >= 3000 {
@@ -140,7 +140,7 @@ func (t *HourData) AssignZmflag() error {
 		return nil
 	}
 	total = 0
-	for i := 17; i <= 22; i++ {
+	for i := 18; i <= 23; i++ {
 
 		total += t.Inthour[i]
 	}
