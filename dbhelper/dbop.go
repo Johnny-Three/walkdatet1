@@ -486,7 +486,6 @@ func InsertT1(db *sql.DB, user *UserDayData) error {
 	for key, value := range user.MapHourData {
 
 		qs := fmt.Sprintf("select dataid from wanbu_data_walkday where userid=%d and walkdate =%d", user.Userid, value.Walkdate)
-		fmt.Println(qs)
 		err = db.QueryRow(qs).Scan(&id)
 		if err != nil {
 			return err
@@ -501,5 +500,6 @@ func InsertT1(db *sql.DB, user *UserDayData) error {
 			return err
 		}
 	}
+	fmt.Println("处理完毕%d,开始时间%d,结束时间%d", user.Userid, user.Startdate, user.Enddate)
 	return nil
 }
