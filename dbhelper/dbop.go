@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	_ "github.com/go-sql-driver/mysql"
+	. "wbproject/walkdatet1/logs"
 	. "wbproject/walkdatet1/structure"
 )
 
@@ -431,7 +432,7 @@ func InsertT1N1(db *sql.DB, user *UserDayData) error {
 		_, err := db.Exec(sqlStr)
 
 		fmt.Println("InsertT1N1:", sqlStr)
-
+		Logger.Info("InsertT1N1:", sqlStr)
 		/*
 				sqlStr := `
 			   INSERT INTO wanbu_data_walkday_t1 (userid, walkdate, zmflag, faststepnum, remaineffectiveSteps, zmrule, zmstatus) values (?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE walkdate = VALUES(walkdate),zmflag = VALUES(zmflag),faststepnum = VALUES(faststepnum),remaineffectiveSteps = VALUES(remaineffectiveSteps),zmrule = VALUES(zmrule),zmstatus = VALUES(zmstatus)`
@@ -461,6 +462,7 @@ func InsertT1N2(db *sql.DB, user *UserDayData) error {
 		_, err := db.Exec(sqlStr)
 
 		fmt.Println("InsertT1N2:", sqlStr)
+		Logger.Info("InsertT1N2:", sqlStr)
 
 		/*
 				sqlStr := `
@@ -501,5 +503,7 @@ func InsertT1(db *sql.DB, user *UserDayData) error {
 		}
 	}
 	fmt.Println("处理完毕%d,开始时间%d,结束时间%d", user.Userid, user.Startdate, user.Enddate)
+	Logger.Infof("处理完毕%d,开始时间%d,结束时间%d", user.Userid, user.Startdate, user.Enddate)
+
 	return nil
 }

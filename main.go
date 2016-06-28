@@ -9,13 +9,14 @@ import (
 	. "wbproject/walkdatet1/client"
 	. "wbproject/walkdatet1/dbhelper"
 	. "wbproject/walkdatet1/envbuild"
+	. "wbproject/walkdatet1/logs"
 	. "wbproject/walkdatet1/process"
 	. "wbproject/walkdatet1/structure"
 )
 
 var err error
 var consumer *nsq.Consumer
-var version string = "1.0.0PR5"
+var version string = "1.0.0PR6"
 
 var def = 100
 
@@ -80,6 +81,7 @@ func main() {
 
 			case m := <-User_walk_data_chan:
 				fmt.Println("get msg", m)
+				Logger.Info("get msg", m)
 				DealNsqMsq(db, &m)
 
 			default:
