@@ -431,7 +431,7 @@ func InsertT1N1(db *sql.DB, user *UserDayData) error {
 			sqlStr := fmt.Sprintf("INSERT INTO wanbu_data_walkday_t1 (userid, walkdate, zmflag, faststepnum, remaineffectiveSteps, zmrule, zmstatus) values (%d,%d,%d,%d,%d,'%s','%s') ON DUPLICATE KEY UPDATE walkdate = VALUES(walkdate),zmflag = VALUES(zmflag),faststepnum = VALUES(faststepnum),remaineffectiveSteps = VALUES(remaineffectiveSteps),zmrule = VALUES(zmrule),zmstatus = VALUES(zmstatus)", user.Userid, key, value.Zmflag, value.Faststepnum, value.Effecitvestepnum, value.Zmrule, value.Zmstatus)
 		*/
 
-		sqlStr := fmt.Sprintf("Update wanbu_data_walkday_t1 set zmflag = %d,faststepnum = %d,remaineffectiveSteps=%d,zmrule = %s,zmstatus=%s where userid = %d and walkdate = %d", value.Zmflag, value.Faststepnum, value.Effecitvestepnum, value.Zmrule, value.Zmstatus, user.Userid, key)
+		sqlStr := fmt.Sprintf("Update wanbu_data_walkday_t1 set zmflag = %d,faststepnum = %d,remaineffectiveSteps=%d,zmrule = '%s',zmstatus='%s' where userid = %d and walkdate = %d", value.Zmflag, value.Faststepnum, value.Effecitvestepnum, value.Zmrule, value.Zmstatus, user.Userid, key)
 
 		_, err := db.Exec(sqlStr)
 
