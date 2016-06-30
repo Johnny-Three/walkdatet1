@@ -98,6 +98,7 @@ func (t *HourData) AssignInthour() error {
 
 		if duan == 0 {
 
+			fmt.Println("duan 0 walkdate:", t.Walkdate, "hour.StrSplitSlice:", tmp)
 			tmp0, _ := strconv.Atoi(tmp[0])
 			tmp2, _ := strconv.Atoi(tmp[2])
 
@@ -107,6 +108,7 @@ func (t *HourData) AssignInthour() error {
 
 		if duan == 1 {
 
+			fmt.Println("duan 1 walkdate:", t.Walkdate, "hour.StrSplitSlice:", tmp)
 			tmp0, _ := strconv.Atoi(tmp[0])
 			tmp2, _ := strconv.Atoi(tmp[2])
 			tmp4, _ := strconv.Atoi(tmp[4])

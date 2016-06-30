@@ -118,6 +118,7 @@ func AssignOneUserHourData(db *sql.DB, userid int, walkdate int64, zmrule string
 	hour.Strhour = append(hour.Strhour, hour23)
 
 	//计算快走及剩余有效步数
+	fmt.Println("userid:", userid, "walkdate:", walkdate, "hour.Strhour:", hour.Strhour)
 	err = hour.AssignInthour()
 	if err != nil {
 		return false, err
@@ -247,7 +248,7 @@ func AssignUserHourData(db *sql.DB, user *UserDayData) error {
 	for wd := user.Startdate; wd <= user.Enddate; wd += 86400 {
 
 		hd := HourData{}
-		fmt.Println("userid:", user.Userid, "walkdate:", wd, "......")
+		//fmt.Println("userid:", user.Userid, "walkdate:", wd, "......")
 		b, err := AssignOneUserHourData(db, user.Userid, wd, zmrule, &hd)
 		if err != nil {
 			errback := fmt.Sprintf("userid:%d,walkdate:%d,error:%s", user.Userid, wd, err.Error())
