@@ -16,7 +16,7 @@ import (
 
 var err error
 var consumer *nsq.Consumer
-var version string = "1.0.0PR8"
+var version string = "1.0.0PR9"
 
 var def = 100
 

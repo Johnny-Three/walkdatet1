@@ -111,19 +111,13 @@ func (t *HourData) AssignInthour() error {
 		}
 
 		if duan == 1 {
-
-			tmp0, err0 := strconv.Atoi(tmp[0])
-			if err0 != nil {
-				return err0
+			
+			if len(tmp) != 6 {
+				retrun errors.New("小时数据格式错误，6位小时数据中出现了4位的数据")
 			}
-			tmp2, err2 := strconv.Atoi(tmp[2])
-			if err2 != nil {
-				return err2
-			}
-			tmp4, err4 := strconv.Atoi(tmp[4])
-			if err4 != nil {
-				return err4
-			}
+			tmp0, _ := strconv.Atoi(tmp[0])
+			tmp2, _ := strconv.Atoi(tmp[2])
+			tmp4, _ := strconv.Atoi(tmp[4])
 
 			hourSteps += tmp0
 			fast += tmp2
