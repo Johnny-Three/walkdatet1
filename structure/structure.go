@@ -100,6 +100,7 @@ func (t *HourData) AssignInthour() error {
 
 			tmp0, _ := strconv.Atoi(tmp[0])
 			tmp2, _ := strconv.Atoi(tmp[2])
+
 			hourSteps = hourSteps + tmp0 + tmp2
 			fast += tmp2
 		}

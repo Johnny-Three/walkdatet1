@@ -247,6 +247,7 @@ func AssignUserHourData(db *sql.DB, user *UserDayData) error {
 	for wd := user.Startdate; wd <= user.Enddate; wd += 86400 {
 
 		hd := HourData{}
+		fmt.Println("userid:", user.Userid, "walkdate:", wd, "......")
 		b, err := AssignOneUserHourData(db, user.Userid, wd, zmrule, &hd)
 		if err != nil {
 			errback := fmt.Sprintf("userid:%d,walkdate:%d,error:%s", user.Userid, wd, err.Error())
@@ -426,19 +427,16 @@ func InsertT1N1(db *sql.DB, user *UserDayData) error {
 	}
 
 	for key, value := range user.MapHourData {
+		/*
+			sqlStr := fmt.Sprintf("INSERT INTO wanbu_data_walkday_t1 (userid, walkdate, zmflag, faststepnum, remaineffectiveSteps, zmrule, zmstatus) values (%d,%d,%d,%d,%d,'%s','%s') ON DUPLICATE KEY UPDATE walkdate = VALUES(walkdate),zmflag = VALUES(zmflag),faststepnum = VALUES(faststepnum),remaineffectiveSteps = VALUES(remaineffectiveSteps),zmrule = VALUES(zmrule),zmstatus = VALUES(zmstatus)", user.Userid, key, value.Zmflag, value.Faststepnum, value.Effecitvestepnum, value.Zmrule, value.Zmstatus)
+		*/
 
-		sqlStr := fmt.Sprintf("INSERT INTO wanbu_data_walkday_t1 (userid, walkdate, zmflag, faststepnum, remaineffectiveSteps, zmrule, zmstatus) values (%d,%d,%d,%d,%d,'%s','%s') ON DUPLICATE KEY UPDATE walkdate = VALUES(walkdate),zmflag = VALUES(zmflag),faststepnum = VALUES(faststepnum),remaineffectiveSteps = VALUES(remaineffectiveSteps),zmrule = VALUES(zmrule),zmstatus = VALUES(zmstatus)", user.Userid, key, value.Zmflag, value.Faststepnum, value.Effecitvestepnum, value.Zmrule, value.Zmstatus)
+		sqlStr := fmt.Sprintf("Update wanbu_data_walkday_t1 set zmflag = %d,faststepnum = %d,remaineffectiveSteps=%d,zmrule = %s,zmstatus=%s where userid = %d and walkdate = %d", value.Zmflag, value.Faststepnum, value.Effecitvestepnum, value.Zmrule, value.Zmstatus, user.Userid, key)
 
 		_, err := db.Exec(sqlStr)
 
 		fmt.Println("InsertT1N1:", sqlStr)
 		Logger.Info("InsertT1N1:", sqlStr)
-		/*
-				sqlStr := `
-			   INSERT INTO wanbu_data_walkday_t1 (userid, walkdate, zmflag, faststepnum, remaineffectiveSteps, zmrule, zmstatus) values (?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE walkdate = VALUES(walkdate),zmflag = VALUES(zmflag),faststepnum = VALUES(faststepnum),remaineffectiveSteps = VALUES(remaineffectiveSteps),zmrule = VALUES(zmrule),zmstatus = VALUES(zmstatus)`
-
-				_, err := db.Exec(sqlStr, user.Userid, key, value.Zmflag, value.Faststepnum, value.Effecitvestepnum, value.Zmrule, value.Zmstatus)
-		*/
 
 		if err != nil {
 			return err
@@ -457,19 +455,15 @@ func InsertT1N2(db *sql.DB, user *UserDayData) error {
 
 	for key, value := range user.MapHourData {
 
-		sqlStr := fmt.Sprintf("INSERT INTO wanbu_data_walkday_t1 (userid, walkdate, zmflag, faststepnum, remaineffectiveSteps) values (%d,%d,%d,%d,%d) ON DUPLICATE KEY UPDATE walkdate = VALUES(walkdate),zmflag = VALUES(zmflag),faststepnum = VALUES(faststepnum),remaineffectiveSteps = VALUES(remaineffectiveSteps)", user.Userid, key, value.Zmflag, value.Faststepnum, value.Effecitvestepnum)
+		/*
+			sqlStr := fmt.Sprintf("INSERT INTO wanbu_data_walkday_t1 (userid, walkdate, zmflag, faststepnum, remaineffectiveSteps) values (%d,%d,%d,%d,%d) ON DUPLICATE KEY UPDATE walkdate = VALUES(walkdate),zmflag = VALUES(zmflag),faststepnum = VALUES(faststepnum),remaineffectiveSteps = VALUES(remaineffectiveSteps)", user.Userid, key, value.Zmflag, value.Faststepnum, value.Effecitvestepnum)
+		*/
+		sqlStr := fmt.Sprintf("Update wanbu_data_walkday_t1 set zmflag = %d,faststepnum = %d,remaineffectiveSteps=%d where userid = %d and walkdate = %d", value.Zmflag, value.Faststepnum, value.Effecitvestepnum, user.Userid, key)
 
 		_, err := db.Exec(sqlStr)
 
 		fmt.Println("InsertT1N2:", sqlStr)
 		Logger.Info("InsertT1N2:", sqlStr)
-
-		/*
-				sqlStr := `
-			   INSERT INTO wanbu_data_walkday_t1 (userid, walkdate, zmflag, faststepnum, remaineffectiveSteps) values (?,?,?,?,?) ON DUPLICATE KEY UPDATE walkdate = VALUES(walkdate),zmflag = VALUES(zmflag),faststepnum = VALUES(faststepnum),remaineffectiveSteps = VALUES(remaineffectiveSteps)`
-
-				_, err := db.Exec(sqlStr, user.Userid, key, value.Zmflag, value.Faststepnum, value.Effecitvestepnum)
-		*/
 
 		if err != nil {
 			return err
@@ -502,7 +496,7 @@ func InsertT1(db *sql.DB, user *UserDayData) error {
 			return err
 		}
 	}
-	fmt.Println("处理完毕%d,开始时间%d,结束时间%d", user.Userid, user.Startdate, user.Enddate)
+	fmt.Printf("处理完毕%d,开始时间%d,结束时间%d", user.Userid, user.Startdate, user.Enddate)
 	Logger.Infof("处理完毕%d,开始时间%d,结束时间%d", user.Userid, user.Startdate, user.Enddate)
 
 	return nil
