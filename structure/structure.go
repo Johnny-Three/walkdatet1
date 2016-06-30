@@ -111,10 +111,11 @@ func (t *HourData) AssignInthour() error {
 		}
 
 		if duan == 1 {
-			
+
 			if len(tmp) != 6 {
-				retrun errors.New("小时数据格式错误，6位小时数据中出现了4位的数据")
+				return errors.New("小时数据格式错误，6位小时数据中出现了4位的数据")
 			}
+
 			tmp0, _ := strconv.Atoi(tmp[0])
 			tmp2, _ := strconv.Atoi(tmp[2])
 			tmp4, _ := strconv.Atoi(tmp[4])
