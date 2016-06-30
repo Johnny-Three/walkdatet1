@@ -78,7 +78,6 @@ func (t *HourData) AssignInthour() error {
 	for index, shour := range t.Strhour {
 
 		//hourSteps := 0
-
 		var hourSteps int
 
 		tmp := strings.Split(shour, ",")
@@ -98,9 +97,14 @@ func (t *HourData) AssignInthour() error {
 
 		if duan == 0 {
 
-			fmt.Println("duan 0 walkdate:", t.Walkdate, "hour.StrSplitSlice:", tmp)
-			tmp0, _ := strconv.Atoi(tmp[0])
-			tmp2, _ := strconv.Atoi(tmp[2])
+			tmp0, err0 := strconv.Atoi(tmp[0])
+			if err0 != nil {
+				return err0
+			}
+			tmp2, err2 := strconv.Atoi(tmp[2])
+			if err2 != nil {
+				return err2
+			}
 
 			hourSteps = hourSteps + tmp0 + tmp2
 			fast += tmp2
@@ -108,10 +112,18 @@ func (t *HourData) AssignInthour() error {
 
 		if duan == 1 {
 
-			fmt.Println("duan 1 walkdate:", t.Walkdate, "hour.StrSplitSlice:", tmp)
-			tmp0, _ := strconv.Atoi(tmp[0])
-			tmp2, _ := strconv.Atoi(tmp[2])
-			tmp4, _ := strconv.Atoi(tmp[4])
+			tmp0, err0 := strconv.Atoi(tmp[0])
+			if err0 != nil {
+				return err0
+			}
+			tmp2, err2 := strconv.Atoi(tmp[2])
+			if err2 != nil {
+				return err2
+			}
+			tmp4, err4 := strconv.Atoi(tmp[4])
+			if err4 != nil {
+				return err4
+			}
 
 			hourSteps += tmp0
 			fast += tmp2
