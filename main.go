@@ -16,7 +16,7 @@ import (
 
 var err error
 var consumer *nsq.Consumer
-var version string = "1.0.0PR10"
+var version string = "1.0.0PR11"
 
 var def = 100
 
@@ -68,7 +68,6 @@ func main() {
 		fmt.Println("Load db person query total time:", elapsed)
 
 		if err != nil {
-			fmt.Println(err)
 			os.Exit(0)
 		}
 

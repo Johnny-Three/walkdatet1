@@ -17,7 +17,7 @@ func SelectInitUsers(db *sql.DB) ([]*UserDayData, error) {
 
 	//半年内上传过数据的人
 	//qs := "select userid,unix_timestamp(from_unixtime(lastuploadtime,'%Y-%m-%d')) from wanbu_data_userdevice where lastuploadtime > unix_timestamp(date_sub(curdate(),interval 6 month)) limit 10"
-	qs := "SELECT de.userid,unix_timestamp(from_unixtime(unix_timestamp(),'%Y-%m-%d')) FROM wanbu_data_userdevice de,wanbu_stat_user sa WHERE de.lastuploadtime>=UNIX_TIMESTAMP(20160601) AND de.userid =sa.userid AND sa.stepdaysa>=182"
+	qs := "SELECT de.userid,unix_timestamp(from_unixtime(unix_timestamp(),'%Y-%m-%d')) FROM wanbu_data_userdevice de,wanbu_stat_user sa WHERE de.lastuploadtime>=UNIX_TIMESTAMP(20160601) AND de.userid =sa.userid AND sa.stepdaysa>=182 and de.userid=40"
 
 	rows, err := db.Query(qs)
 	if err != nil {
@@ -332,6 +332,7 @@ func AssignUserHourData_x(db *sql.DB, user *UserDayData) error {
 		//fmt.Println("userid:", user.Userid, "walkdate:", wd, "......")
 		b, err := AssignOneUserHourData1(db, user.Userid, wd, &hd)
 		if err != nil {
+
 			errback := fmt.Sprintf("userid:%d,walkdate:%d,error:%s", user.Userid, wd, err.Error())
 			return errors.New(errback)
 		}
@@ -566,7 +567,10 @@ func InsertT1(db *sql.DB, user *UserDayData) error {
 		qs := fmt.Sprintf("select dataid from wanbu_data_walkday where userid=%d and walkdate =%d", user.Userid, value.Walkdate)
 		err = db.QueryRow(qs).Scan(&id)
 		if err != nil {
-			return err
+
+			errback := fmt.Sprintf("InsertT1 err:%s,can not find data in wanbu_data_walkday,userid:%d,walkdate:%d", err, user.Userid, value.Walkdate)
+			Logger.Critical(errback)
+			continue
 		}
 
 		sqlStr := `
