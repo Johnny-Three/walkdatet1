@@ -86,7 +86,7 @@ func AssingOneUserBeginDate_x(db *sql.DB, user *UserDayData) error {
 	}
 	if user.Startdate == -1 {
 
-		errback := fmt.Sprintf("userid:%d,lastuploadtime:%d,根据条件walkdate >= unix_timestamp(date_format(date_sub(curdate(),interval 6 month)查找wanbu_data_walkday数据异常·", user.Userid, user.Enddate)
+		errback := fmt.Sprintf("userid:%d,lastuploadtime:%d,根据条件select IFNULL(min(walkdate),-1) from wanbu_data_walkday where userid =?", user.Userid, user.Enddate)
 		return errors.New(errback)
 	}
 	return nil
@@ -313,18 +313,13 @@ func AssignUserHourData(db *sql.DB, user *UserDayData) error {
 			user.MapHourData[wd] = hd
 		}
 	}
-	fmt.Printf("UserDayData 用户ID[%d],开始时间[%d],结束时间[%d],初始化数据量[%d]", user.Userid, user.Startdate, user.Enddate, len(user.MapHourData))
+	fmt.Printf("UserDayData 用户ID[%d],开始时间[%d],结束时间[%d],初始化数据量[%d]\n", user.Userid, user.Startdate, user.Enddate, len(user.MapHourData))
 	return nil
 }
 
 //针对某用户的小时数据进行初始化，从开始时间到结束时间
 func AssignUserHourData_x(db *sql.DB, user *UserDayData) error {
 
-	zmrule, err := GetZmRule(db, user.Userid)
-	if err != nil {
-		return err
-	}
-	//todo .. 改一改 ..
 	err0 := AssingOneUserBeginDate_x(db, user)
 	if err0 != nil {
 		return err0
@@ -335,7 +330,7 @@ func AssignUserHourData_x(db *sql.DB, user *UserDayData) error {
 
 		hd := HourData{}
 		//fmt.Println("userid:", user.Userid, "walkdate:", wd, "......")
-		b, err := AssignOneUserHourData(db, user.Userid, wd, zmrule, &hd)
+		b, err := AssignOneUserHourData1(db, user.Userid, wd, &hd)
 		if err != nil {
 			errback := fmt.Sprintf("userid:%d,walkdate:%d,error:%s", user.Userid, wd, err.Error())
 			return errors.New(errback)
@@ -345,7 +340,7 @@ func AssignUserHourData_x(db *sql.DB, user *UserDayData) error {
 			user.MapHourData[wd] = hd
 		}
 	}
-	fmt.Printf("UserDayData 用户ID[%d],开始时间[%d],结束时间[%d],初始化数据量[%d]", user.Userid, user.Startdate, user.Enddate, len(user.MapHourData))
+	fmt.Printf("UserDayData 用户ID[%d],开始时间[%d],结束时间[%d],初始化数据量[%d]\n", user.Userid, user.Startdate, user.Enddate, len(user.MapHourData))
 	return nil
 }
 
@@ -583,8 +578,8 @@ func InsertT1(db *sql.DB, user *UserDayData) error {
 			return err
 		}
 	}
-	fmt.Printf("处理完毕%d,开始时间%d,结束时间%d", user.Userid, user.Startdate, user.Enddate)
-	Logger.Infof("处理完毕%d,开始时间%d,结束时间%d", user.Userid, user.Startdate, user.Enddate)
+	fmt.Printf("处理完毕%d,开始时间%d,结束时间%d\n", user.Userid, user.Startdate, user.Enddate)
+	Logger.Infof("处理完毕%d,开始时间%d,结束时间%d\n", user.Userid, user.Startdate, user.Enddate)
 
 	return nil
 }

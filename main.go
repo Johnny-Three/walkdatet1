@@ -72,7 +72,7 @@ func main() {
 			os.Exit(0)
 		}
 
-		Sync(users, db, def)
+		Sync_x(users, db, def)
 		os.Exit(1)
 	}
 

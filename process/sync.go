@@ -125,3 +125,55 @@ func Sync(uids []*UserDayData, db *sql.DB, def int) {
 		wg.Wait()
 	}
 }
+
+//需要初始化的人群，开始并行初始化，每次def并发量
+func Sync_x(uids []*UserDayData, db *sql.DB, def int) {
+
+	stepth := len(uids) / def
+	//fmt.Println("stepth is: ", stepth)
+
+	for i := 0; i < stepth; i++ {
+
+		time.Sleep(1 * time.Millisecond)
+
+		for j := i * def; j < (i+1)*def; j++ {
+
+			wg.Add(1)
+
+			go func(j int) {
+				defer wg.Done()
+				//todo .. 处理每个用户，从小米获取信息，处理信息并入库
+				fmt.Println("hi,Sync is running in batch ")
+				err := AssignUserHourData_x(db, uids[j])
+				CheckError(err)
+				err = InsertT1(db, uids[j])
+				CheckError(err)
+
+			}(j)
+		}
+		wg.Wait()
+	}
+
+	yu := len(uids) % def
+	//模除部分处理
+	if yu != 0 {
+
+		for j := stepth * def; j < len(uids); j++ {
+
+			time.Sleep(1 * time.Millisecond)
+			fmt.Println("现在初始化userid", uids[j])
+			wg.Add(1)
+			go func(j int) {
+				defer wg.Done()
+				//todo .. 处理每个用户，从小米获取信息，处理信息并入库
+				fmt.Println("hi,Sync is running in yu ")
+				err := AssignUserHourData_x(db, uids[j])
+				CheckError(err)
+				err = InsertT1(db, uids[j])
+				CheckError(err)
+
+			}(j)
+		}
+		wg.Wait()
+	}
+}
