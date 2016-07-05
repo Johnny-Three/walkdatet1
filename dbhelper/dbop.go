@@ -11,6 +11,34 @@ import (
 
 var err error
 
+func SelectInitUsers(db *sql.DB) ([]*UserDayData, error) {
+
+	users := []*UserDayData{}
+
+	//半年内上传过数据的人
+	//qs := "select userid,unix_timestamp(from_unixtime(lastuploadtime,'%Y-%m-%d')) from wanbu_data_userdevice where lastuploadtime > unix_timestamp(date_sub(curdate(),interval 6 month)) limit 10"
+	qs := "SELECT de.userid,unix_timestamp(from_unixtime(unix_timestamp(),'%Y-%m-%d')) FROM wanbu_data_userdevice de,wanbu_stat_user sa WHERE de.lastuploadtime>=UNIX_TIMESTAMP(20160601) AND de.userid =sa.userid AND sa.stepdaysa>=182"
+
+	rows, err := db.Query(qs)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+
+		user := UserDayData{}
+		user.MapHourData = make(map[int64]HourData)
+
+		err := rows.Scan(&user.Userid, &user.Enddate)
+		if err != nil {
+			return nil, err
+		}
+		users = append(users, &user)
+	}
+	return users, nil
+
+}
+
 //========================初始化=========================
 func SelectAllUsers(db *sql.DB) ([]*UserDayData, error) {
 
@@ -37,6 +65,31 @@ func SelectAllUsers(db *sql.DB) ([]*UserDayData, error) {
 		users = append(users, &user)
 	}
 	return users, nil
+}
+
+func AssingOneUserBeginDate_x(db *sql.DB, user *UserDayData) error {
+
+	//找到开始时间,如果min(walkdate)为空，则为异常数据
+	qs := "select IFNULL(min(walkdate),-1) from wanbu_data_walkday where userid = ?"
+
+	rows, err0 := db.Query(qs, user.Userid)
+	if err0 != nil {
+		return err0
+	}
+	defer rows.Close()
+	for rows.Next() {
+
+		err := rows.Scan(&user.Startdate)
+		if err != nil {
+			return err
+		}
+	}
+	if user.Startdate == -1 {
+
+		errback := fmt.Sprintf("userid:%d,lastuploadtime:%d,根据条件walkdate >= unix_timestamp(date_format(date_sub(curdate(),interval 6 month)查找wanbu_data_walkday数据异常·", user.Userid, user.Enddate)
+		return errors.New(errback)
+	}
+	return nil
 }
 
 func AssingOneUserBeginDate(db *sql.DB, user *UserDayData) error {
@@ -239,7 +292,40 @@ func AssignUserHourData(db *sql.DB, user *UserDayData) error {
 	if err != nil {
 		return err
 	}
+	//todo .. 改一改 ..
 	err0 := AssingOneUserBeginDate(db, user)
+	if err0 != nil {
+		return err0
+	}
+
+	//fmt.Println("after assgin begindate", user)
+	for wd := user.Startdate; wd <= user.Enddate; wd += 86400 {
+
+		hd := HourData{}
+		//fmt.Println("userid:", user.Userid, "walkdate:", wd, "......")
+		b, err := AssignOneUserHourData(db, user.Userid, wd, zmrule, &hd)
+		if err != nil {
+			errback := fmt.Sprintf("userid:%d,walkdate:%d,error:%s", user.Userid, wd, err.Error())
+			return errors.New(errback)
+		}
+		if b == true {
+			hd.Walkdate = wd
+			user.MapHourData[wd] = hd
+		}
+	}
+	fmt.Printf("UserDayData 用户ID[%d],开始时间[%d],结束时间[%d],初始化数据量[%d]", user.Userid, user.Startdate, user.Enddate, len(user.MapHourData))
+	return nil
+}
+
+//针对某用户的小时数据进行初始化，从开始时间到结束时间
+func AssignUserHourData_x(db *sql.DB, user *UserDayData) error {
+
+	zmrule, err := GetZmRule(db, user.Userid)
+	if err != nil {
+		return err
+	}
+	//todo .. 改一改 ..
+	err0 := AssingOneUserBeginDate_x(db, user)
 	if err0 != nil {
 		return err0
 	}

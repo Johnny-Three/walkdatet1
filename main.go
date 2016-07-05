@@ -16,7 +16,7 @@ import (
 
 var err error
 var consumer *nsq.Consumer
-var version string = "1.0.0PR9"
+var version string = "1.0.0PR10"
 
 var def = 100
 
@@ -43,6 +43,26 @@ func main() {
 		start := time.Now()
 		//环境初始化，半年内的数据进行初始化
 		users, err := SelectAllUsers(db)
+		fmt.Println("load db game over the len of users is", len(users))
+		elapsed := time.Since(start)
+		fmt.Println("Load db person query total time:", elapsed)
+
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(0)
+		}
+
+		Sync(users, db, def)
+		os.Exit(1)
+	}
+
+	if len(args) == 2 && (args[1] == "-s") {
+
+		init = true
+
+		start := time.Now()
+		//环境初始化，初始化条件，一个月内上传过数据，并且万步天数大于182天
+		users, err := SelectInitUsers(db)
 		fmt.Println("load db game over the len of users is", len(users))
 		elapsed := time.Since(start)
 		fmt.Println("Load db person query total time:", elapsed)
