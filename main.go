@@ -30,7 +30,7 @@ func main() {
 		os.Exit(0)
 	}
 
-	db, nsqadress, err := EnvBuild()
+	db, nsqadress, count, err := EnvBuild()
 	if err != nil {
 		panic(err.Error())
 	}
@@ -90,9 +90,12 @@ func main() {
 			os.Exit(0)
 		}
 
+		fre := 1000 / count
+
+		fmt.Println("frequentcy is ", fre)
 		for i := 0; i < len(users); i++ {
 
-			time.Sleep(time.Duration(20) * time.Millisecond)
+			time.Sleep(time.Duration(fre) * time.Millisecond)
 			err := StatTrigger(users[i], db)
 			if err != nil {
 				Logger.Critical("userid:", users[i].Userid, err)

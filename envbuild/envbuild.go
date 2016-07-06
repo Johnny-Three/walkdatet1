@@ -21,13 +21,13 @@ func GetDB() *sql.DB {
 }
 
 //EnvBuild需要正确的解析文件并且初始化DB的连接。。
-func EnvBuild() (*sql.DB, string, error) {
+func EnvBuild() (*sql.DB, string, int64, error) {
 
 	//get conf
 	cf, err := config.ReadConfigFile(config_file_path)
 
 	if err != nil {
-		return nil, "", err
+		return nil, "", 0, err
 	}
 
 	rdip1, _ := cf.GetString("DBCONN1", "IP")
@@ -47,5 +47,7 @@ func EnvBuild() (*sql.DB, string, error) {
 	nsqip, _ := cf.GetString("CONSUMER", "IP")
 	nsqport, _ := cf.GetString("CONSUMER", "PORT")
 
-	return db1, nsqip + ":" + nsqport, nil
+	rfrequent, _ := cf.GetInt64("FREQUENT", "COUNT")
+
+	return db1, nsqip + ":" + nsqport, rfrequent, nil
 }
