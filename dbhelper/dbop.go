@@ -11,13 +11,29 @@ import (
 
 var err error
 
+func StatTrigger(user *UserDayData, db *sql.DB) error {
+
+	sqlStr := fmt.Sprintf("INSERT INTO `wanbu_data_uploadqueue_user` (`userid`, `timestamp`, `walkdate`) VALUES (%d,UNIX_TIMESTAMP(),UNIX_TIMESTAMP(20160601))", user.Userid)
+
+	_, err := db.Exec(sqlStr)
+
+	fmt.Println("StatTrigger:", sqlStr)
+	Logger.Info("StatTrigger:", sqlStr)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func SelectInitUsers(db *sql.DB) ([]*UserDayData, error) {
 
 	users := []*UserDayData{}
 
 	//半年内上传过数据的人
 	//qs := "select userid,unix_timestamp(from_unixtime(lastuploadtime,'%Y-%m-%d')) from wanbu_data_userdevice where lastuploadtime > unix_timestamp(date_sub(curdate(),interval 6 month)) limit 10"
-	qs := "SELECT de.userid,unix_timestamp(from_unixtime(unix_timestamp(),'%Y-%m-%d')) FROM wanbu_data_userdevice de,wanbu_stat_user sa WHERE de.lastuploadtime>=UNIX_TIMESTAMP(20160601) AND de.userid =sa.userid AND sa.stepdaysa>=182 and de.userid=40"
+	qs := "SELECT de.userid,unix_timestamp(from_unixtime(unix_timestamp(),'%Y-%m-%d')) FROM wanbu_data_userdevice de,wanbu_stat_user sa WHERE de.lastuploadtime>=UNIX_TIMESTAMP(20130601) AND de.userid =sa.userid AND sa.stepdaysa>=1"
 
 	rows, err := db.Query(qs)
 	if err != nil {

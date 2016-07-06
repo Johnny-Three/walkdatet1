@@ -16,7 +16,7 @@ import (
 
 var err error
 var consumer *nsq.Consumer
-var version string = "1.0.0PR11"
+var version string = "1.0.0PR12"
 
 var def = 100
 
@@ -72,6 +72,34 @@ func main() {
 		}
 
 		Sync_x(users, db, def)
+		os.Exit(1)
+	}
+
+	if len(args) == 2 && (args[1] == "-t") {
+
+		init = true
+
+		start := time.Now()
+		//环境初始化，初始化条件，一个月内上传过数据，并且万步天数大于182天
+		users, err := SelectInitUsers(db)
+		fmt.Println("load db game over the len of users is", len(users))
+		elapsed := time.Since(start)
+		fmt.Println("Load db person query total time:", elapsed)
+
+		if err != nil {
+			os.Exit(0)
+		}
+
+		for i := 0; i < len(users); i++ {
+
+			time.Sleep(time.Duration(20) * time.Millisecond)
+			err := StatTrigger(users[i], db)
+			if err != nil {
+				Logger.Critical("userid:", users[i].Userid, err)
+				continue
+			}
+		}
+
 		os.Exit(1)
 	}
 
