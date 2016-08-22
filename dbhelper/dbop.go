@@ -487,6 +487,8 @@ func AssignUserHourDataNsq2(db *sql.DB, user *UserDayData, uws *User_walkdays_st
 
 			hd := HourData{}
 			hd.Zmrule = zmrule
+			//小时数据转移到另外一个数据结构中
+			hd.Inthour = v.Hourdata
 			hd.Effecitvestepnum = v.Effecitvestepnum
 			hd.Faststepnum = v.Faststepnum
 			//计算zmflag
