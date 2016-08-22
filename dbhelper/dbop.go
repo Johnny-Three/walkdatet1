@@ -487,6 +487,13 @@ func AssignUserHourDataNsq2(db *sql.DB, user *UserDayData, uws *User_walkdays_st
 
 			hd := HourData{}
 			hd.Zmrule = zmrule
+			hd.Effecitvestepnum = v.Effecitvestepnum
+			hd.Faststepnum = v.Faststepnum
+			//计算zmflag
+			err = hd.AssignZmflag()
+			if err != nil {
+				return 0, err
+			}
 			user.MapHourData[v.WalkDate] = hd
 		}
 		//需更新ZMRULE，但不更新ZMSTATUS字段
