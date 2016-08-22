@@ -361,39 +361,59 @@ func AssignUserHourData_x(db *sql.DB, user *UserDayData) error {
 	return nil
 }
 
-func GetZmRuleFromT1(db *sql.DB, userid int, walkdate int64) (string, error) {
+func GetZmRuleFromT1(db *sql.DB, userid int, walkdate int64) (string, string, error) {
 
-	qs := "select trim(zmrule) from wanbu_data_walkday_t1 where userid = ? and walkdate = ?"
+	qs := "select trim(zmrule),trim(zmstatus) from wanbu_data_walkday_t1 where userid = ? and walkdate = ?"
 	rows, err := db.Query(qs, userid, walkdate)
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
-	var zmrule string
+	var zmrule, zmstatus string
 	defer rows.Close()
 	for rows.Next() {
 
-		err := rows.Scan(&zmrule)
+		err := rows.Scan(&zmrule, &zmstatus)
 		if err != nil {
-			return "", err
+			return "", "", err
 		}
 	}
-	return zmrule, nil
+	return zmrule, zmstatus, nil
 }
 
 //NSQ消息中fastnum\effectivenum为-1，需要从DB中计算
-func AssignUserHourDataNsq1(db *sql.DB, user *UserDayData, uws *User_walkdays_struct) (bool, error) {
+func AssignUserHourDataNsq1(db *sql.DB, user *UserDayData, uws *User_walkdays_struct) (int, error) {
 
 	user.Userid = uws.Uid
 
 	//没有ZMRULE，从DB中拿到ZMRULE，ZMSTATUS，更新DB
-	zmrule, err := GetZmRuleFromT1(db, user.Userid, uws.Walkdays[len(uws.Walkdays)-1].WalkDate)
+	zmrule, zmstatus, err := GetZmRuleFromT1(db, user.Userid, uws.Walkdays[len(uws.Walkdays)-1].WalkDate)
 	if err != nil {
 		fmt.Println("error happens in AssignUserHourDataNsq1")
-		return false, err
+		return 0, err
+	}
+
+	//出现这种情况，补zmrule，zmstatus不能动
+	if len(zmrule) == 0 && len(zmstatus) > 0 {
+
+		zmrule, err := GetZmRule(db, user.Userid)
+		if err != nil {
+			return 0, err
+		}
+
+		for _, v := range uws.Walkdays {
+
+			hd := HourData{}
+			hd.Zmrule = zmrule
+			user.MapHourData[v.WalkDate] = hd
+		}
+		//需更新ZMRULE，但不更新ZMSTATUS字段
+		return 3, nil
+
 	}
 
 	//如果ZMRULE有值，len大于1，那么更新表的时候不需要更新zmrule及zmstatus字段
-	if len(zmrule) > 0 {
+	//如果ZMSTATUS有值，len大于1，那么更新表的时候不需要更新zmrule及zmstatus字段
+	if len(zmrule) > 0 || len(zmstatus) > 0 {
 
 		for _, v := range uws.Walkdays {
 
@@ -402,22 +422,23 @@ func AssignUserHourDataNsq1(db *sql.DB, user *UserDayData, uws *User_walkdays_st
 			b, err := AssignOneUserHourData1(db, user.Userid, v.WalkDate, &hd)
 			if err != nil {
 				errback := fmt.Sprintf("userid:%d,walkdate:%d,error:%s", user.Userid, v.WalkDate, err.Error())
-				return false, errors.New(errback)
+				return 0, errors.New(errback)
 			}
 			if b == true {
 				user.MapHourData[v.WalkDate] = hd
 			}
 		}
 		//无需更新ZMRULE,ZMSTATUS字段
-		return false, nil
+		return 2, nil
 	}
 
-	//如果ZMRULE没有值，那么更新表的时候需要从别处拿到zmrule及zmstatus字段值
-	if len(zmrule) == 0 {
+	//如果ZMRULE没有值并且ZMSTATUS没有值，那么更新表的时候需要从别处拿到zmrule及zmstatus字段值
+	//如果ZMRULE有值并且ZMSTATUS没有值，那么更新表的时候需要从别处拿到zmrule及zmstatus字段值
+	if (len(zmrule) == 0 && len(zmstatus) == 0) || (len(zmrule) > 0 && len(zmstatus) == 0) {
 
 		zmrule, err := GetZmRule(db, user.Userid)
 		if err != nil {
-			return false, err
+			return 0, err
 		}
 
 		for _, v := range uws.Walkdays {
@@ -427,35 +448,54 @@ func AssignUserHourDataNsq1(db *sql.DB, user *UserDayData, uws *User_walkdays_st
 			b, err := AssignOneUserHourData(db, user.Userid, v.WalkDate, zmrule, &hd)
 			if err != nil {
 				errback := fmt.Sprintf("userid:%d,walkdate:%d,error:%s", user.Userid, v.WalkDate, err.Error())
-				return false, errors.New(errback)
+				return 0, errors.New(errback)
 			}
 			if b == true {
 				user.MapHourData[v.WalkDate] = hd
 			}
 		}
 		//需更新ZMRULE,ZMSTATUS字段
-		return true, nil
+		return 1, nil
 	}
 
-	return false, errors.New("未知错误")
+	return 0, errors.New("未知错误")
 }
 
 //NSQ消息中自带fastnum\effectivenum值，直接赋值即可
-func AssignUserHourDataNsq2(db *sql.DB, user *UserDayData, uws *User_walkdays_struct) (bool, error) {
+func AssignUserHourDataNsq2(db *sql.DB, user *UserDayData, uws *User_walkdays_struct) (int, error) {
 
 	user.Userid = uws.Uid
 
 	//没有ZMRULE，从DB中拿到ZMRULE，ZMSTATUS，更新DB (从天数据中拿一条数据即可)
-	zmrule, err := GetZmRuleFromT1(db, user.Userid, uws.Walkdays[len(uws.Walkdays)-1].WalkDate)
+	zmrule, zmstatus, err := GetZmRuleFromT1(db, user.Userid, uws.Walkdays[len(uws.Walkdays)-1].WalkDate)
 
 	//fmt.Println("userid is", user.Userid, "walkdate is:", uws.Walkdays[0].WalkDate, "zmrule is:", zmrule)
 	if err != nil {
 		fmt.Println("error happens in AssignUserHourDataNsq2")
-		return false, err
+		return 0, err
 	}
 
-	//如果ZMRULE有值，len大于1，那么更新表的时候不需要更新zmrule及zmstatus字段
-	if len(zmrule) > 0 {
+	//出现这种情况，补zmrule，zmstatus不能动
+	if len(zmrule) == 0 && len(zmstatus) > 0 {
+
+		zmrule, err := GetZmRule(db, user.Userid)
+		if err != nil {
+			return 0, err
+		}
+
+		for _, v := range uws.Walkdays {
+
+			hd := HourData{}
+			hd.Zmrule = zmrule
+			user.MapHourData[v.WalkDate] = hd
+		}
+		//需更新ZMRULE，但不更新ZMSTATUS字段
+		return 3, nil
+
+	}
+
+	//如果ZMRULE及ZMSTATUS有值，len大于1，那么更新表的时候不需要更新zmrule及zmstatus字段
+	if len(zmrule) > 0 && len(zmstatus) > 0 {
 
 		for _, v := range uws.Walkdays {
 
@@ -467,20 +507,21 @@ func AssignUserHourDataNsq2(db *sql.DB, user *UserDayData, uws *User_walkdays_st
 			//计算zmflag
 			err = hd.AssignZmflag()
 			if err != nil {
-				return false, err
+				return 0, err
 			}
 			user.MapHourData[v.WalkDate] = hd
 		}
 		//无需更新ZMRULE,ZMSTATUS字段
-		return false, nil
+		return 2, nil
 	}
 
-	//如果ZMRULE没有值，那么更新表的时候需要从别处拿到zmrule及zmstatus字段值
-	if len(zmrule) == 0 {
+	//如果ZMRULE没有值并且ZMSTATUS没有值，那么更新表的时候需要从别处拿到zmrule及zmstatus字段值
+	//如果ZMRULE有值并且ZMSTATUS没有值，那么更新表的时候需要从别处拿到zmrule及zmstatus字段值
+	if (len(zmrule) == 0 && len(zmstatus) == 0) || (len(zmrule) > 0 && len(zmstatus) == 0) {
 
 		zmrule, err := GetZmRule(db, user.Userid)
 		if err != nil {
-			return false, err
+			return 0, err
 		}
 
 		for _, v := range uws.Walkdays {
@@ -493,28 +534,28 @@ func AssignUserHourDataNsq2(db *sql.DB, user *UserDayData, uws *User_walkdays_st
 			//计算zmflag
 			err = hd.AssignZmflag()
 			if err != nil {
-				return false, err
+				return 0, err
 			}
 			//计算zmstatus
 			zm := PrizeRule{}
 			zm.Dbstring = zmrule
 			err = zm.Parse()
 			if err != nil {
-				return false, err
+				return 0, err
 			}
 			zs, err1 := zm.CalculateOld(&hd)
 			if err1 != nil {
-				return false, err1
+				return 0, err1
 			}
 			hd.Zmrule = zmrule
 			hd.Zmstatus = zs
 			user.MapHourData[v.WalkDate] = hd
 		}
 		//需更新ZMRULE,ZMSTATUS字段
-		return true, nil
+		return 1, nil
 	}
 
-	return false, errors.New("未知错误")
+	return 0, errors.New("未知错误")
 }
 
 //需要更新ZMRULE
@@ -526,9 +567,6 @@ func InsertT1N1(db *sql.DB, user *UserDayData) error {
 	}
 
 	for key, value := range user.MapHourData {
-		/*
-			sqlStr := fmt.Sprintf("INSERT INTO wanbu_data_walkday_t1 (userid, walkdate, zmflag, faststepnum, remaineffectiveSteps, zmrule, zmstatus) values (%d,%d,%d,%d,%d,'%s','%s') ON DUPLICATE KEY UPDATE walkdate = VALUES(walkdate),zmflag = VALUES(zmflag),faststepnum = VALUES(faststepnum),remaineffectiveSteps = VALUES(remaineffectiveSteps),zmrule = VALUES(zmrule),zmstatus = VALUES(zmstatus)", user.Userid, key, value.Zmflag, value.Faststepnum, value.Effecitvestepnum, value.Zmrule, value.Zmstatus)
-		*/
 
 		sqlStr := fmt.Sprintf("Update wanbu_data_walkday_t1 set zmflag = %d,faststepnum = %d,remaineffectiveSteps=%d,zmrule = '%s',zmstatus='%s' where userid = %d and walkdate = %d", value.Zmflag, value.Faststepnum, value.Effecitvestepnum, value.Zmrule, value.Zmstatus, user.Userid, key)
 
@@ -554,15 +592,36 @@ func InsertT1N2(db *sql.DB, user *UserDayData) error {
 
 	for key, value := range user.MapHourData {
 
-		/*
-			sqlStr := fmt.Sprintf("INSERT INTO wanbu_data_walkday_t1 (userid, walkdate, zmflag, faststepnum, remaineffectiveSteps) values (%d,%d,%d,%d,%d) ON DUPLICATE KEY UPDATE walkdate = VALUES(walkdate),zmflag = VALUES(zmflag),faststepnum = VALUES(faststepnum),remaineffectiveSteps = VALUES(remaineffectiveSteps)", user.Userid, key, value.Zmflag, value.Faststepnum, value.Effecitvestepnum)
-		*/
 		sqlStr := fmt.Sprintf("Update wanbu_data_walkday_t1 set zmflag = %d,faststepnum = %d,remaineffectiveSteps=%d where userid = %d and walkdate = %d", value.Zmflag, value.Faststepnum, value.Effecitvestepnum, user.Userid, key)
 
 		_, err := db.Exec(sqlStr)
 
 		fmt.Println("InsertT1N2:", sqlStr)
 		Logger.Info("InsertT1N2:", sqlStr)
+
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+//需要更新ZMRULE,但不更新ZMSTATUS
+func InsertT1N3(db *sql.DB, user *UserDayData) error {
+
+	if len(user.MapHourData) == 0 {
+
+		return nil
+	}
+
+	for key, value := range user.MapHourData {
+
+		sqlStr := fmt.Sprintf("Update wanbu_data_walkday_t1 set zmflag = %d,faststepnum = %d,remaineffectiveSteps=%d,zmrule = '%s' where userid = %d and walkdate = %d", value.Zmflag, value.Faststepnum, value.Effecitvestepnum, value.Zmrule, user.Userid, key)
+
+		_, err := db.Exec(sqlStr)
+
+		fmt.Println("InsertT1N1:", sqlStr)
+		Logger.Info("InsertT1N1:", sqlStr)
 
 		if err != nil {
 			return err

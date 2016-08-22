@@ -35,15 +35,15 @@ func DealNsqMsq(db *sql.DB, t *User_walkdays_struct) error {
 			if err != nil {
 				continue
 			}
-			if r == true {
-				fmt.Println("I AM IN HERE 1")
-				Logger.Info("I AM IN HERE 1")
+
+			if r == 1 {
 				err := InsertT1N1(db, &user)
 				CheckError(err)
-			} else if r == false {
-				fmt.Println("I AM IN HERE 2")
-				Logger.Info("I AM IN HERE 2")
+			} else if r == 2 {
 				err := InsertT1N2(db, &user)
+				CheckError(err)
+			} else if r == 3 {
+				err := InsertT1N3(db, &user)
 				CheckError(err)
 			}
 
@@ -54,17 +54,17 @@ func DealNsqMsq(db *sql.DB, t *User_walkdays_struct) error {
 			if err != nil {
 				continue
 			}
-			if r == true {
-				fmt.Println("I AM IN HERE 3")
-				Logger.Info("I AM IN HERE 3")
+			if r == 1 {
 				err := InsertT1N1(db, &user)
 				CheckError(err)
-			} else if r == false {
-				fmt.Println("I AM IN HERE 4")
-				Logger.Info("I AM IN HERE 4")
+			} else if r == 2 {
 				err := InsertT1N2(db, &user)
 				CheckError(err)
+			} else if r == 3 {
+				err := InsertT1N3(db, &user)
+				CheckError(err)
 			}
+
 		} else {
 			//数据格式不正确
 			Logger.Critical("error msg format :", t)
