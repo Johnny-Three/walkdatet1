@@ -629,8 +629,8 @@ func InsertT1N3(db *sql.DB, user *UserDayData) error {
 
 		_, err := db.Exec(sqlStr)
 
-		fmt.Println("InsertT1N1:", sqlStr)
-		Logger.Info("InsertT1N1:", sqlStr)
+		fmt.Println("InsertT1N3:", sqlStr)
+		Logger.Info("InsertT1N3:", sqlStr)
 
 		if err != nil {
 			return err
