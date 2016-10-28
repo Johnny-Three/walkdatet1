@@ -33,7 +33,7 @@ func SelectInitUsers(db *sql.DB) ([]*UserDayData, error) {
 
 	//半年内上传过数据的人
 	//qs := "select userid,unix_timestamp(from_unixtime(lastuploadtime,'%Y-%m-%d')) from wanbu_data_userdevice where lastuploadtime > unix_timestamp(date_sub(curdate(),interval 6 month)) limit 10"
-	qs := "SELECT de.userid,unix_timestamp(from_unixtime(unix_timestamp(),'%Y-%m-%d')) FROM wanbu_data_userdevice de,wanbu_stat_user sa WHERE de.lastuploadtime>=UNIX_TIMESTAMP(20130601) AND de.userid =sa.userid AND sa.stepdaysa>=1"
+	qs := "SELECT de.userid,unix_timestamp(from_unixtime(unix_timestamp(),'%Y-%m-%d')) FROM wanbu_data_userdevice de,wanbu_stat_user sa WHERE de.lastuploadtime>=UNIX_TIMESTAMP(20160601) AND de.userid =sa.userid AND sa.stepdaysa>=1"
 
 	rows, err := db.Query(qs)
 	if err != nil {
@@ -136,7 +136,7 @@ func AssingOneUserBeginDate(db *sql.DB, user *UserDayData) error {
 //针对某用户某天的小时数据进行数据初始化
 func AssignOneUserHourData(db *sql.DB, userid int, walkdate int64, zmrule string, hour *HourData) (bool, error) {
 
-	qs := "select hour0,hour1,hour2,hour3,hour4,hour5,hour6,hour7,hour8,hour9,hour10,hour11,hour12,hour13,hour14,hour15,hour16,hour17,hour18,hour19,hour20,hour21,hour22,hour23 from wanbu_data_walkhour where userid=? and walkdate = ? "
+	qs := "select hour2,hour3,hour4,hour5,hour6,hour7,hour8,hour9,hour10,hour11,hour12,hour13,hour14,hour15,hour16,hour17,hour18,hour19,hour20,hour21,hour22,hour23,hour24,hour25 from wanbu_data_walkhour where userid=? and walkdate = ? "
 
 	var hour0, hour1, hour2, hour3, hour4, hour5, hour6, hour7, hour8, hour9, hour10, hour11, hour12, hour13, hour14, hour15, hour16, hour17, hour18, hour19, hour20, hour21, hour22, hour23 string
 
@@ -217,7 +217,7 @@ func AssignOneUserHourData(db *sql.DB, userid int, walkdate int64, zmrule string
 //针对某用户某天的小时数据进行数据初始化
 func AssignOneUserHourData1(db *sql.DB, userid int, walkdate int64, hour *HourData) (bool, error) {
 
-	qs := "select hour0,hour1,hour2,hour3,hour4,hour5,hour6,hour7,hour8,hour9,hour10,hour11,hour12,hour13,hour14,hour15,hour16,hour17,hour18,hour19,hour20,hour21,hour22,hour23 from wanbu_data_walkhour where userid=? and walkdate = ? "
+	qs := "select hour2,hour3,hour4,hour5,hour6,hour7,hour8,hour9,hour10,hour11,hour12,hour13,hour14,hour15,hour16,hour17,hour18,hour19,hour20,hour21,hour22,hour23,hour24,hour25 from wanbu_data_walkhour where userid=? and walkdate = ? "
 
 	var hour0, hour1, hour2, hour3, hour4, hour5, hour6, hour7, hour8, hour9, hour10, hour11, hour12, hour13, hour14, hour15, hour16, hour17, hour18, hour19, hour20, hour21, hour22, hour23 string
 
