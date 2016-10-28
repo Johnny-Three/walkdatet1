@@ -47,6 +47,8 @@ func DealNsqMsq(db *sql.DB, t *User_walkdays_struct) error {
 				CheckError(err)
 			}
 
+			break
+
 		} else if v.Faststepnum >= 0 && v.Effecitvestepnum >= 0 {
 
 			r, err := AssignUserHourDataNsq2(db, &user, t)
@@ -65,9 +67,13 @@ func DealNsqMsq(db *sql.DB, t *User_walkdays_struct) error {
 				CheckError(err)
 			}
 
+			break
+
 		} else {
 			//数据格式不正确
 			Logger.Critical("error msg format :", t)
+
+			break
 		}
 	}
 
