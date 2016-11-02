@@ -68,8 +68,8 @@ func (t *HourData) AssignInthour() error {
 		return errors.New("Inthour已有数据,请勿重复初始化")
 	}
 
-	if len(t.Strhour) != 24 {
-		return errors.New("天小时数据加载长度不为24，格式错误，请检查")
+	if len(t.Strhour) != 26 {
+		return errors.New("天小时数据加载长度不为26，格式错误，请检查")
 	}
 
 	var duan int
@@ -107,7 +107,9 @@ func (t *HourData) AssignInthour() error {
 			}
 
 			hourSteps = hourSteps + tmp0 + tmp2
-			fast += tmp2
+			if index >= 2 {
+				fast += tmp2
+			}
 		}
 
 		if duan == 1 {
@@ -121,10 +123,12 @@ func (t *HourData) AssignInthour() error {
 			tmp4, _ := strconv.Atoi(tmp[4])
 
 			hourSteps += tmp0
-			fast += tmp2
-			effect += tmp4
-		}
+			if index >= 2 {
 
+				fast += tmp2
+				effect += tmp4
+			}
+		}
 		t.Inthour = append(t.Inthour, hourSteps)
 	}
 
@@ -136,9 +140,10 @@ func (t *HourData) AssignInthour() error {
 
 func (t *HourData) AssignZmflag() error {
 
-	if len(t.Inthour) != 24 {
+	//数据库中取数据是26位，消息中是24位
+	if len(t.Inthour) != 26 && len(t.Inthour) != 24 {
 
-		return errors.New("Inthour长度不够24，尚未初始化")
+		return errors.New("Inthour长度不是24或者26，尚未初始化")
 	}
 	total := 0
 	for i := 5; i <= 8; i++ {

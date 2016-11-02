@@ -136,9 +136,9 @@ func AssingOneUserBeginDate(db *sql.DB, user *UserDayData) error {
 //针对某用户某天的小时数据进行数据初始化
 func AssignOneUserHourData(db *sql.DB, userid int, walkdate int64, zmrule string, hour *HourData) (bool, error) {
 
-	qs := "select hour2,hour3,hour4,hour5,hour6,hour7,hour8,hour9,hour10,hour11,hour12,hour13,hour14,hour15,hour16,hour17,hour18,hour19,hour20,hour21,hour22,hour23,hour24,hour25 from wanbu_data_walkhour where userid=? and walkdate = ? "
+	qs := "select hour0,hour1,hour2,hour3,hour4,hour5,hour6,hour7,hour8,hour9,hour10,hour11,hour12,hour13,hour14,hour15,hour16,hour17,hour18,hour19,hour20,hour21,hour22,hour23,hour24,hour25 from wanbu_data_walkhour where userid=? and walkdate = ? "
 
-	var hour0, hour1, hour2, hour3, hour4, hour5, hour6, hour7, hour8, hour9, hour10, hour11, hour12, hour13, hour14, hour15, hour16, hour17, hour18, hour19, hour20, hour21, hour22, hour23 string
+	var hour0, hour1, hour2, hour3, hour4, hour5, hour6, hour7, hour8, hour9, hour10, hour11, hour12, hour13, hour14, hour15, hour16, hour17, hour18, hour19, hour20, hour21, hour22, hour23, hour24, hour25 string
 
 	exists := false
 	rows, err0 := db.Query(qs, userid, walkdate)
@@ -148,7 +148,7 @@ func AssignOneUserHourData(db *sql.DB, userid int, walkdate int64, zmrule string
 	defer rows.Close()
 	for rows.Next() {
 
-		err := rows.Scan(&hour0, &hour1, &hour2, &hour3, &hour4, &hour5, &hour6, &hour7, &hour8, &hour9, &hour10, &hour11, &hour12, &hour13, &hour14, &hour15, &hour16, &hour17, &hour18, &hour19, &hour20, &hour21, &hour22, &hour23)
+		err := rows.Scan(&hour0, &hour1, &hour2, &hour3, &hour4, &hour5, &hour6, &hour7, &hour8, &hour9, &hour10, &hour11, &hour12, &hour13, &hour14, &hour15, &hour16, &hour17, &hour18, &hour19, &hour20, &hour21, &hour22, &hour23, &hour24, &hour25)
 		if err != nil {
 			return false, err
 		}
@@ -185,9 +185,11 @@ func AssignOneUserHourData(db *sql.DB, userid int, walkdate int64, zmrule string
 	hour.Strhour = append(hour.Strhour, hour21)
 	hour.Strhour = append(hour.Strhour, hour22)
 	hour.Strhour = append(hour.Strhour, hour23)
+	hour.Strhour = append(hour.Strhour, hour24)
+	hour.Strhour = append(hour.Strhour, hour25)
 
 	//计算快走及剩余有效步数
-	fmt.Println("userid:", userid, "walkdate:", walkdate, "hour.Strhour:", hour.Strhour)
+	//fmt.Println("userid:", userid, "walkdate:", walkdate, "hour.Strhour:", hour.Strhour)
 	err = hour.AssignInthour()
 	if err != nil {
 		return false, err
@@ -217,9 +219,9 @@ func AssignOneUserHourData(db *sql.DB, userid int, walkdate int64, zmrule string
 //针对某用户某天的小时数据进行数据初始化
 func AssignOneUserHourData1(db *sql.DB, userid int, walkdate int64, hour *HourData) (bool, error) {
 
-	qs := "select hour2,hour3,hour4,hour5,hour6,hour7,hour8,hour9,hour10,hour11,hour12,hour13,hour14,hour15,hour16,hour17,hour18,hour19,hour20,hour21,hour22,hour23,hour24,hour25 from wanbu_data_walkhour where userid=? and walkdate = ? "
+	qs := "select hour0,hour1,hour2,hour3,hour4,hour5,hour6,hour7,hour8,hour9,hour10,hour11,hour12,hour13,hour14,hour15,hour16,hour17,hour18,hour19,hour20,hour21,hour22,hour23,hour24,hour25 from wanbu_data_walkhour where userid=? and walkdate = ? "
 
-	var hour0, hour1, hour2, hour3, hour4, hour5, hour6, hour7, hour8, hour9, hour10, hour11, hour12, hour13, hour14, hour15, hour16, hour17, hour18, hour19, hour20, hour21, hour22, hour23 string
+	var hour0, hour1, hour2, hour3, hour4, hour5, hour6, hour7, hour8, hour9, hour10, hour11, hour12, hour13, hour14, hour15, hour16, hour17, hour18, hour19, hour20, hour21, hour22, hour23, hour24, hour25 string
 
 	exists := false
 	rows, err0 := db.Query(qs, userid, walkdate)
@@ -229,7 +231,7 @@ func AssignOneUserHourData1(db *sql.DB, userid int, walkdate int64, hour *HourDa
 	defer rows.Close()
 	for rows.Next() {
 
-		err := rows.Scan(&hour0, &hour1, &hour2, &hour3, &hour4, &hour5, &hour6, &hour7, &hour8, &hour9, &hour10, &hour11, &hour12, &hour13, &hour14, &hour15, &hour16, &hour17, &hour18, &hour19, &hour20, &hour21, &hour22, &hour23)
+		err := rows.Scan(&hour0, &hour1, &hour2, &hour3, &hour4, &hour5, &hour6, &hour7, &hour8, &hour9, &hour10, &hour11, &hour12, &hour13, &hour14, &hour15, &hour16, &hour17, &hour18, &hour19, &hour20, &hour21, &hour22, &hour23, &hour24, &hour25)
 		if err != nil {
 			return false, err
 		}
@@ -266,6 +268,8 @@ func AssignOneUserHourData1(db *sql.DB, userid int, walkdate int64, hour *HourDa
 	hour.Strhour = append(hour.Strhour, hour21)
 	hour.Strhour = append(hour.Strhour, hour22)
 	hour.Strhour = append(hour.Strhour, hour23)
+	hour.Strhour = append(hour.Strhour, hour24)
+	hour.Strhour = append(hour.Strhour, hour25)
 
 	//计算快走及剩余有效步数
 	err = hour.AssignInthour()
