@@ -3,12 +3,13 @@ package client
 import (
 	"errors"
 	"fmt"
-	"github.com/bitly/go-nsq"
 	"log"
 	"os"
 	"strings"
 	"time"
 	. "wbproject/walkdatet1/logs"
+
+	"github.com/bitly/go-nsq"
 )
 
 type Handle struct {
@@ -29,7 +30,6 @@ func (h *Handle) Process() {
 	for {
 		select {
 		case m := <-h.msgchan:
-			//fmt.Println(string(m.Body))
 			err := Decode(string(m.Body))
 			if err != nil {
 				Logger.Critical(err)

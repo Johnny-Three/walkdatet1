@@ -212,6 +212,7 @@ func (t *PrizeRule) Parse() error {
 //解析PrizeRule,针对表中数据
 func (t *PrizeRule) CalculateOld(wd *HourData) (zrb string, err error) {
 
+
 	if t.Nodes == nil {
 		return "", errors.New("PrizeRule nil")
 	}

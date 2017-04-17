@@ -3,6 +3,7 @@ package envbuild
 import (
 	"database/sql"
 	"flag"
+
 	_ "github.com/go-sql-driver/mysql"
 	config "github.com/msbranco/goconfig"
 )
