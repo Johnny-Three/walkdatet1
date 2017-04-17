@@ -2,15 +2,5 @@ language: go
 go:
   - 1.7.x
   - trigger 
-notifications:
-  email:
-    recipients:
-      - gunsluo@gmail.com
-  on_success: change
-  on_failure: always
-install:
-before_install: 
 script:
   - go build
-before_deploy: 
-deploy:
