@@ -4,16 +4,17 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	_ "github.com/go-sql-driver/mysql"
 	. "wbproject/walkdatet1/logs"
 	. "wbproject/walkdatet1/structure"
+
+	_ "github.com/go-sql-driver/mysql"
 )
 
 var err error
 
 func StatTrigger(user *UserDayData, db *sql.DB) error {
 
-	sqlStr := fmt.Sprintf("INSERT INTO `wanbu_data_uploadqueue_user` (`userid`, `timestamp`, `walkdate`) VALUES (%d,UNIX_TIMESTAMP(),UNIX_TIMESTAMP(20160601))", user.Userid)
+	sqlStr := fmt.Sprintf("INSERT INTO `wanbu_data_uploadqueue_user` (`userid`, `timestamp`, `walkdate`) VALUES (%d,UNIX_TIMESTAMP(),UNIX_TIMESTAMP(20170331))", user.Userid)
 
 	_, err := db.Exec(sqlStr)
 
@@ -33,7 +34,7 @@ func SelectInitUsers(db *sql.DB) ([]*UserDayData, error) {
 
 	//半年内上传过数据的人
 	//qs := "select userid,unix_timestamp(from_unixtime(lastuploadtime,'%Y-%m-%d')) from wanbu_data_userdevice where lastuploadtime > unix_timestamp(date_sub(curdate(),interval 6 month)) limit 10"
-	qs := "SELECT de.userid,unix_timestamp(from_unixtime(unix_timestamp(),'%Y-%m-%d')) FROM wanbu_data_userdevice de,wanbu_stat_user sa WHERE de.lastuploadtime>=UNIX_TIMESTAMP(20160601) AND de.userid =sa.userid AND sa.stepdaysa>=1"
+	qs := "SELECT de.userid,unix_timestamp(from_unixtime(unix_timestamp(),'%Y-%m-%d')) FROM wanbu_data_userdevice de,wanbu_stat_user sa WHERE de.lastuploadtime>=UNIX_TIMESTAMP(20160401) AND de.userid =sa.userid AND sa.stepdaysa>=1 and sa.userid = 402135"
 
 	rows, err := db.Query(qs)
 	if err != nil {
@@ -407,12 +408,18 @@ func AssignUserHourDataNsq1(db *sql.DB, user *UserDayData, uws *User_walkdays_st
 		for _, v := range uws.Walkdays {
 
 			hd := HourData{}
-			hd.Zmrule = zmrule
-			user.MapHourData[v.WalkDate] = hd
+			b, err := AssignOneUserHourData1(db, user.Userid, v.WalkDate, &hd)
+			if err != nil {
+				errback := fmt.Sprintf("userid:%d,walkdate:%d,error:%s", user.Userid, v.WalkDate, err.Error())
+				return 0, errors.New(errback)
+			}
+			if b == true {
+				hd.Zmrule = zmrule
+				user.MapHourData[v.WalkDate] = hd
+			}
 		}
 		//需更新ZMRULE，但不更新ZMSTATUS字段
 		return 3, nil
-
 	}
 
 	//如果ZMRULE有值，len大于1，那么更新表的时候不需要更新zmrule及zmstatus字段
@@ -649,6 +656,7 @@ func InsertT1(db *sql.DB, user *UserDayData) error {
 
 		return nil
 	}
+
 	var id int
 	for key, value := range user.MapHourData {
 
@@ -662,7 +670,7 @@ func InsertT1(db *sql.DB, user *UserDayData) error {
 		}
 
 		sqlStr := `
-	   INSERT INTO wanbu_data_walkday_t1 (dataid,userid, walkdate, zmflag, faststepnum, remaineffectiveSteps, zmrule, zmstatus) values (?,?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE dataid=VALUES(dataid),walkdate = VALUES(walkdate),zmflag = VALUES(zmflag),faststepnum = VALUES(faststepnum),remaineffectiveSteps = VALUES(remaineffectiveSteps),zmrule = VALUES(zmrule),zmstatus = VALUES(zmstatus)`
+			   INSERT INTO wanbu_data_walkday_t1 (dataid,userid, walkdate, zmflag, faststepnum, remaineffectiveSteps, zmrule, zmstatus) values (?,?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE dataid=VALUES(dataid),walkdate = VALUES(walkdate),zmflag = VALUES(zmflag),faststepnum = VALUES(faststepnum),remaineffectiveSteps = VALUES(remaineffectiveSteps)`
 
 		_, err := db.Exec(sqlStr, id, user.Userid, key, value.Zmflag, value.Faststepnum, value.Effecitvestepnum, value.Zmrule, value.Zmstatus)
 

@@ -2,6 +2,7 @@ package logs
 
 import (
 	"fmt"
+
 	seelog "github.com/cihub/seelog"
 )
 
@@ -10,7 +11,7 @@ var Logger seelog.LoggerInterface
 func loadAppConfig() {
 	appConfig := `<seelog >
     <outputs formatid="main">
-        <filter levels="debug">    
+        <filter levels="info">    
             <console />    
         </filter>
         <filter levels="info">

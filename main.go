@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/bitly/go-nsq"
 	"os"
 	"time"
 	. "wbproject/walkdatet1/client"
@@ -12,11 +11,13 @@ import (
 	. "wbproject/walkdatet1/logs"
 	. "wbproject/walkdatet1/process"
 	. "wbproject/walkdatet1/structure"
+
+	"github.com/bitly/go-nsq"
 )
 
 var err error
 var consumer *nsq.Consumer
-var version string = "1.0.0PR16"
+var version string = "1.0.1PR1"
 
 var def = 100
 
@@ -41,7 +42,7 @@ func main() {
 		init = true
 
 		start := time.Now()
-		//环境初始化，半年内的数据进行初始化
+		//环境初始化，近半年内的数据进行初始化
 		users, err := SelectAllUsers(db)
 		fmt.Println("load db game over the len of users is", len(users))
 		elapsed := time.Since(start)
@@ -118,7 +119,7 @@ func main() {
 
 		//Consumer运行，消费消息..
 		go func(consumer *nsq.Consumer) {
-
+			fmt.Println("nsq address", nsqadress)
 			err := ConsumerRun(consumer, "base_data_upload", nsqadress)
 			if err != nil {
 				panic(err)
@@ -130,7 +131,6 @@ func main() {
 			select {
 
 			case m := <-User_walk_data_chan:
-				fmt.Println("get msg", m)
 				Logger.Info("get msg", m)
 				DealNsqMsq(db, &m)
 
